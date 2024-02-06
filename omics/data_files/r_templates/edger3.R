@@ -6,6 +6,7 @@ require("mixOmics")
 # ******* prepare datasets ********
 rawCountTable <- read.table("$COUNT_MATRIX", header=TRUE, sep=",", row.names=1)
 sampleInfo <- read.table("$DESIGN_MATRIX", header=TRUE, sep=",", row.names=1)
+output_dir <- "$OUTFILE_NAME"
 
 sampleInfo$batch <- as.factor(sampleInfo$batch)
 sampleInfo$condition <- as.factor(sampleInfo$condition)

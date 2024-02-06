@@ -44,29 +44,53 @@ __version__ = "3.10.1"
 from . import parsing, validation, __path__
 
 
-def get_gui_cache_dir() -> Path:
-    cache_dir = Path(appdirs.user_cache_dir('RNAlysis'))
-    return cache_dir.joinpath('rnalysis_gui')
+def get_gui_cache_dir(ppath) -> Path:
+    cache_dir1 = Path(ppath).joinpath('Omics_analysis')
+    Path(cache_dir1).mkdir(parents=True, exist_ok=True)
+    return cache_dir1.joinpath('rnalysis_gui')
 
 
-def get_data_dir() -> Path:
-    data_dir = Path("/Users/ibrahimahmed/projects/GUI/result_dir")
-    #data_dir = Path(appdirs.user_data_dir('RNAlysis', roaming=True))
-    return data_dir
+def get_data_dir(ppath) -> Path:
+    data_dir1 = Path(ppath).joinpath('Omics_analysis')
+    Path(data_dir1).mkdir(parents=True, exist_ok=True)
+    return data_dir1
 
+
+def get_todays_cache_dir(ppath1) -> Path: 
+    today = date.today().strftime('%Y_%m_%d')
+    cache_dir = Path(ppath1)
+    #cache_dir = Path(appdirs.user_cache_dir('RNAlysis'))
+    todays_dir = cache_dir.joinpath(today)
+    todays_dir.mkdir(parents=True, exist_ok=True)
+    return todays_dir
 
 def get_tutorial_videos_dir() -> Path:
     data_dir = get_data_dir()
     return data_dir.joinpath('videos')
 
+def get_exploration_dir() -> Path:
+    data_dir = get_data_dir()
+    return data_dir.joinpath('exploration')
 
-def get_todays_cache_dir() -> Path: 
-    today = date.today().strftime('%Y_%m_%d')
-    cache_dir = Path("/Users/ibrahimahmed/projects/GUI/result_dir")
-    #cache_dir = Path(appdirs.user_cache_dir('RNAlysis'))
-    todays_dir = cache_dir.joinpath(today)
-    todays_dir.mkdir(parents=True, exist_ok=True)
-    return todays_dir
+def get_deseq2_dir() -> Path:
+    data_dir = get_data_dir()
+    return data_dir.joinpath('DESeq_result')
+
+def get_edger_dir() -> Path:
+    data_dir = get_data_dir()
+    return data_dir.joinpath('EdgeR_result')
+
+def get_emogea_dir() -> Path:
+    data_dir = get_data_dir()
+    return data_dir.joinpath('EMOGEA_result')
+
+def get_enrich_dir() -> Path:
+    data_dir = get_data_dir()
+    return data_dir.joinpath('Enrichment_result')
+
+def get_singleCell_dir() -> Path:
+    data_dir = get_data_dir()
+    return data_dir.joinpath('SingleCell_result')
 
 
 def load_cached_file(filename: str):
@@ -78,6 +102,10 @@ def load_cached_file(filename: str):
     else:
         return None
 
+def get_datetime():
+    now = datetime.now()
+    now_str = now.strftime('%H:%M:%S %Y/%m/%d')
+    return now_str
 
 def cache_file(content: str, filename: str):
     directory = get_todays_cache_dir()

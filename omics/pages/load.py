@@ -17,6 +17,8 @@ from omics.utils import io
 #from ..rnalysis import filtering
 import omics.main_module as filtering
 from typing import Any, Dict, Union, List, Tuple
+from PyQt5.QtCore import QProcess
+import os
 
 
 class PandasModel(QAbstractTableModel):
@@ -59,7 +61,7 @@ class LoadData(QWidget):
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-      
+        
         self.pass_data = [] # hold path of final dataset
 
         # Input widget_6
@@ -185,13 +187,14 @@ class LoadData(QWidget):
 
     def load_count_matrix(self):
         self.count_path = QFileDialog.getOpenFileNames(self, "Open File", "", "All Files (*);;")[0][0]
-        ###print(self.count_path)
+        print(self.count_path)
+        #if not self.count_path[0] == "":
         self.pass_data.append(self.count_path)
-        #self.get_files()
 
     def load_meta_data(self):
         self.meta_path = QFileDialog.getOpenFileNames(self, "Open File", "", "All Files (*);;")[0][0]
         ###print(self.meta_path)
+        #if not self.count_path[0] == "":
         self.pass_data.append(self.meta_path)
     
     def get_result_dir(self):
@@ -297,7 +300,7 @@ class LoadData(QWidget):
             #>>> c.filter_by_row_sum(5) # remove all rows whose sum is <5
             #Filtered 4 features, leaving 18 of the original 22 features. Filtered inplace.  
             #filter = filtering.CountFilter.from_dataframe(self.count_df, "/data")
-            self.filter = filtering.CountFilter(self.count_path)
+            self.filter = filtering.CountFilter(self.count_path, self.result_path)
             self.filter.filter_by_row_sum(5) # remove all rows whose sum is <5
             self.filtered_df = self.filter.df
             threeshold = self.filter_threeshold.value()
@@ -312,8 +315,13 @@ class LoadData(QWidget):
             self.show_warning_messagebox("Make sure all data loaded")
     
     def normalize_data(self):
-        self.filter.normalize_tmm()
-        self.group_box2.setEnabled(True)
+        print("*********************")
+        print("*********************")
+        print(self.filter)
+        print("*********************")
+        print("*********************")
+        #self.filter.normalize_tmm()
+        ##self.group_box2.setEnabled(True)
         #self.load_table2()
         #print(self.filter.df)
 
@@ -337,7 +345,9 @@ class LoadData(QWidget):
             
 
     def accept_data(self): 
+       
         self.submitClicked.emit(self.pass_data)
+
         ###if len(self.pass_data) > 1:
             ###print(self.pass_data)
         ###else:
@@ -395,7 +405,9 @@ class LoadData(QWidget):
             data.append(rowRes)
         dataFrame = pd.DataFrame(data[1:], columns=data[0])
         self.pass_data.append(dataFrame)
+        #***************** Revisit******************
         dataFrame.set_index('samples', inplace=True)
+        
         dataFrame.to_csv(pathlib.Path(__file__).parent.parent.joinpath("Test.csv"))#, index=False, header=False)
         #io.save_table(dataFrame, "Test.csv")
         self.pass_data.append(pathlib.Path(__file__).parent.parent.joinpath("Test.csv"))

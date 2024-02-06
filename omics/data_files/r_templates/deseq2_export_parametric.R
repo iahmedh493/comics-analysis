@@ -24,7 +24,10 @@ df <- as.matrix(df)
 
 #jpeg(file="/Users/ibrahimahmed/projects/GUI/filename.jpg")
 #heatmap(df)
-heatmaply(df[1:20,], file = "heatmaply_plot.html")
+output_dir <- "$OUTFILE_NAME"
+save_file <- file.path(output_dir, "DESeq_result", "heatmaply_plot.html")
+heatmaply(df[1:20,], file = save_file)
+##heatmaply(df[1:20,], file = "heatmaply_plot.html")
 
 organism = "org.Hs.eg.db"
 #BiocManager::install(organism, character.only = TRUE)
@@ -47,7 +50,10 @@ gse <- gseGO(geneList=gene_list,
 
 pp <- gseaplot2(gse, geneSetID = 1:3)
 pp
-ggsave("/Users/ibrahimahmed/projects/GUI/result_dir/DESeq2_result/clusterProfiler_GSEA_IVANOVA_small.pdf")
+
+save_path <- file.path(output_dir, "DESeq_result", "clusterProfiler_GSEA_IVANOVA_small.pdf")
+ggsave(save_path)
+##ggsave("/Users/ibrahimahmed/projects/GUI/result_dir/DESeq2_result/clusterProfiler_GSEA_IVANOVA_small.pdf")
 #ggsave(sprintf("/Users/ibrahimahmed/projects/GUI/GSEAps.pdf", p), width = 8, height = 6, onefile = T)
 print(">>>><<><><><><><><><><")
 print(total)

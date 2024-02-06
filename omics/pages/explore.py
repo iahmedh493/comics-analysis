@@ -18,6 +18,8 @@ import scanpy as sc
 import scanpy as sc
 import pandas as pd
 import numpy as np
+import pathlib
+import os
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -73,6 +75,10 @@ class Explore(QWidget):
 
         
         #self.submit.clicked.connect(self.confirm_form)
+        print("&&&&&&&&&&&&&&&&&&")
+        #print(self.loaded)
+        print(pathlib.Path(__file__).parent.parent.joinpath("Test.csv"))
+        print("&&&&&&&&&&&&&&&&&&")
     
 
     def confirm_form(self):
@@ -83,29 +89,47 @@ class Explore(QWidget):
 
     def apply_plots(self):
         
-        
+        print("&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*")
+        print("&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*")
+        print(self.loaded)
+        print("&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*")
+        print("&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*")
+
         file_name = 'temp2.csv'
         fun = self.plots.currentText()
         index = self.plots.currentIndex()
+        
 
-        filtDesq = filtering.CountFilter(self.loaded[0])
+        filtDesq = filtering.CountFilter(self.loaded[1], str(self.loaded[2]))
+        fpath3 = self.loaded[2]
+        filtDesq.differential_expression_edger2(self.loaded[0],
+                                        (("condition", "treated", "untreated"),),
+                                          r_installation_folder="/Library/Frameworks/R.framework/Resources",
+                                          output_folder=str(fpath3))
 
+
+        '''
         filtDesq.differential_expression_edger2("/Users/ibrahimahmed/projects/GUI/Test.csv",
                                         (("condition", "treated", "untreated"),),
                                           r_installation_folder="/Library/Frameworks/R.framework/Resources",
                                           output_folder="/Users/ibrahimahmed/projects/GUI/result_dir/exploration")
-
+        '''
+        #io.get_exploration_dir()
         if index == 0:
-            self.view.load(QtCore.QUrl().fromLocalFile(
-            "/Users/ibrahimahmed/projects/GUI/result_dir/exploration/MDS-Plot.html"))
+            #self.view.load(QtCore.QUrl().fromLocalFile("/Users/ibrahimahmed/projects/GUI/result_dir/exploration/MDS-Plot.html"))
+            ##fpath = pathlib.Path(self.loaded[2]).joinpath("exploration/MDS-Plot.html")
+            fpath = os.path.join(self.loaded[2], "exploration", "MDS-Plot.html")
+            self.view.load(QtCore.QUrl().fromLocalFile(str(fpath)))
             self.stack.addWidget(self.view)
             self.view.show()
 
         #file_name = 'temp2.csv'
         
         if index == 1:
-            self.view.load(QtCore.QUrl().fromLocalFile(
-            "/Users/ibrahimahmed/projects/GUI/result_dir/exploration/volicano-plot.html"))
+            #self.view.load(QtCore.QUrl().fromLocalFile("/Users/ibrahimahmed/projects/GUI/result_dir/exploration/volicano-plot.html"))
+            ##fpath2 = pathlib.Path(self.loaded[2]).joinpath("exploration/volicano-plot.html")
+            fpath2 = os.path.join(self.loaded[2], "exploration", "volicano-plot.html")
+            self.view.load(QtCore.QUrl().fromLocalFile(str(fpath2)))
             self.stack.addWidget(self.view)
             self.view.show()
         

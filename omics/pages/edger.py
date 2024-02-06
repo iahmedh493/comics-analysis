@@ -76,36 +76,48 @@ class EdgeR(QWidget):
     def start_un(self):
         text = self.work_flow_combo.currentText()
         index = self.work_flow_combo.currentIndex()
+
+        print("O**************************")
+        print("O**************************")
+        print(self.input_data)
+        print("O**************************")
+        print("O**************************")
         if text == "EdgeR":
             
-            count_data_path = pathlib.Path(__file__).parent.parent.joinpath(self.input_data[0])
-            design_matrix_path = str(self.input_data[-1]) #pathlib.Path(__file__).parent.parent.joinpath(self.input_data[0])
+            count_data_path = pathlib.Path(__file__).parent.parent.joinpath(self.input_data[1])
+            design_matrix_path = str(self.input_data[0]) #pathlib.Path(__file__).parent.parent.joinpath(self.input_data[0])
            
-            filtDesq = filtering.CountFilter(count_data_path)
-            filtDesq.differential_expression_edger3(design_matrix_path, "untreated", r_installation_folder="/Library/Frameworks/R.framework/Resources",output_folder="/Users/ibrahimahmed/projects/GUI/result_dir/edger_result")
-        
+            filtDesq = filtering.CountFilter(self.input_data[1], str(self.input_data[0]))
+            filtDesq.differential_expression_edger3(design_matrix_path, "untreated", r_installation_folder="/Library/Frameworks/R.framework/Resources",output_folder=str(self.input_data[0]))
+            #io.get_edger_dir()
             msg = QMessageBox()
-            msg.setText("complete!/n The result directory is: /Users/ibrahimahmed/projects/GUI/result_dir")
+            msg.setText("complete!/n The result directory is: %s" % str(self.input_data[0]))
             x = msg.exec_()
 
         if text == "DESeq2":
-            count_data_path = pathlib.Path(__file__).parent.parent.joinpath(self.input_data[0])
-            design_matrix_path = str(self.input_data[1]) #pathlib.Path(__file__).parent.parent.joinpath(self.input_data[0])
+            count_data_path = pathlib.Path(__file__).parent.parent.joinpath(self.input_data[1])
+            design_matrix_path = str(self.input_data[0]) #pathlib.Path(__file__).parent.parent.joinpath(self.input_data[0])
             compare = (("condition", self.cond1_combo.currentText(), self.cond2_combo.currentText()),)
-            filtDesq = filtering.CountFilter(count_data_path)
-            filtDesq.differential_expression_deseq2(design_matrix_path, compare, r_installation_folder="/Library/Frameworks/R.framework/Resources",output_folder="/Users/ibrahimahmed/projects/GUI/result_dir/DESeq2_result")
+            filtDesq = filtering.CountFilter(self.input_data[1], str(self.input_data[0]))
+            filtDesq.differential_expression_deseq2(design_matrix_path, compare, r_installation_folder="/Library/Frameworks/R.framework/Resources",output_folder=str(self.input_data[0]))
+            #io.get_deseq2_dir()
             msg = QMessageBox()
-            msg.setText("complete!/n The result directory is: /Users/ibrahimahmed/projects/GUI/result_dir")
+            msg.setText("complete!/n The result directory is: %s" % str(self.input_data[0]))
             x = msg.exec_()
 
-            pixmap1 = QPixmap('/Users/ibrahimahmed/projects/GUI2/heatmap_LSK.jpeg')
+            heatmap_image = os.path.join(str(self.input_data[0]), "DESeq_result", "heatmap_LSK.jpeg")
+            ##pixmap1 = QPixmap('/Users/ibrahimahmed/projects/GUI2/heatmap_LSK.jpeg')
+            pixmap1 = QPixmap(heatmap_image)
+                                         
             self.label1.setPixmap(pixmap1)
             self.resize(pixmap1.width(), pixmap1.height())
-
-            pixmap2 = QPixmap('/Users/ibrahimahmed/projects/GUI2/clusterProfiler_GSEA_IVANOVA_small.svg')
+            heatmap_image1 = os.path.join(str(self.input_data[0]), "DESeq_result", "clusterProfiler_GSEA_IVANOVA_small.svg")
+            #pixmap2 = QPixmap('/Users/ibrahimahmed/projects/GUI2/clusterProfiler_GSEA_IVANOVA_small.svg')
+            pixmap2 = QPixmap(heatmap_image1)
             self.label2.setPixmap(pixmap2)
        
-            pixmap3 = QPixmap("/Users/ibrahimahmed/projects/my_plot.svg")
+            heatmap_image2 = os.path.join(str(self.input_data[0]), "DESeq_result", "my_plot.svg")
+            pixmap3 = QPixmap(heatmap_image2)
             self.label3.setPixmap(pixmap3)
 
         if index == 2:

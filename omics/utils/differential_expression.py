@@ -105,9 +105,10 @@ def install_deseq2(r_installation_folder: Union[str, Path, Literal['auto']] = 'a
                              "or try to install DESeq2 manually.")
 
 
-def create_deseq2_script(data_path: Union[str, Path], design_mat_path: Union[str, Path],
+def create_deseq2_script(data_path: Union[str, Path], design_mat_path: Union[str, Path], output_path: Union[str, Path],
                          comparisons: Iterable[Tuple[str, str, str]]):
-    cache_dir = io.get_todays_cache_dir().joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    #cache_dir = io.get_todays_cache_dir(output_path).joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    cache_dir = io.get_todays_cache_dir(output_path)
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
     save_path = cache_dir.joinpath('deseq2_run.R')
@@ -124,6 +125,7 @@ def create_deseq2_script(data_path: Union[str, Path], design_mat_path: Union[str
         run_template = run_template.replace("$COUNT_MATRIX", Path(data_path).as_posix())
         run_template = run_template.replace("$DESIGN_MATRIX", (Path(design_mat_path).as_posix()))
         run_template = run_template.replace("$FORMULA", formula)
+        run_template = run_template.replace("$OUTFILE_PATH", str(Path(output_path).as_posix()))
 
         outfile.write(run_template)
 
@@ -139,8 +141,9 @@ def create_deseq2_script(data_path: Union[str, Path], design_mat_path: Union[str
     return save_path
 
 def create_edger2_script(data_path: Union[str, Path], design_mat_path: Union[str, Path],
-                         comparisons: Iterable[Tuple[str, str, str]]):
-    cache_dir = io.get_todays_cache_dir().joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+                         comparisons: Iterable[Tuple[str, str, str]], output_path: Union[str, Path]):
+    #cache_dir = io.get_todays_cache_dir(output_path).joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    cache_dir = io.get_todays_cache_dir(output_path)
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
     save_path = cache_dir.joinpath('edgr2_run.R')
@@ -154,6 +157,7 @@ def create_edger2_script(data_path: Union[str, Path], design_mat_path: Union[str
 
         run_template = run_template.replace("$COUNT_MATRIX", Path(data_path).as_posix())
         run_template = run_template.replace("$DESIGN_MATRIX", (Path(design_mat_path).as_posix()))
+        run_template = run_template.replace("$OUTFILE_NAME", str(Path(output_path).as_posix()))
     
         
         for contrast in comparisons:
@@ -167,9 +171,10 @@ def create_edger2_script(data_path: Union[str, Path], design_mat_path: Union[str
 
     return save_path
 
-def create_edger3_script(data_path: Union[str, Path], design_mat_path: Union[str, Path],
+def create_edger3_script(data_path: Union[str, Path], design_mat_path: Union[str, Path], output_path,
                          reference: str):
-    cache_dir = io.get_todays_cache_dir().joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    #cache_dir = io.get_todays_cache_dir(output_path).joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    cache_dir = io.get_todays_cache_dir(output_path)
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
     save_path = cache_dir.joinpath('edgr2_run.R')
@@ -183,6 +188,7 @@ def create_edger3_script(data_path: Union[str, Path], design_mat_path: Union[str
 
         run_template = run_template.replace("$COUNT_MATRIX", Path(data_path).as_posix())
         run_template = run_template.replace("$DESIGN_MATRIX", (Path(design_mat_path).as_posix()))
+        run_template = run_template.replace("$OUTFILE_NAME", (Path(output_path).as_posix()))
         run_template = run_template.replace("$REF", reference)
         
         outfile.write(run_template)
@@ -190,7 +196,8 @@ def create_edger3_script(data_path: Union[str, Path], design_mat_path: Union[str
     return save_path
 
 def create_pathway_script(data_path: Union[str, Path], output_path: Union[str, Path]):
-    cache_dir = io.get_todays_cache_dir().joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    #cache_dir = io.get_todays_cache_dir().joinpath(hashlib.sha1(str(time.time_ns()).encode('utf-8')).hexdigest())
+    cache_dir = io.get_todays_cache_dir(output_path)
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
     save_path = cache_dir.joinpath('pathway_run.R')
@@ -216,7 +223,7 @@ def run_pathway_analysis(data_path: Union[str, Path], output_path: Union[str, Pa
     io.run_r_script(script_path, r_installation_folder)
     return script_path.parent
 
-def run_deseq2_analysis(data_path: Union[str, Path], design_mat_path: Union[str, Path],
+def run_deseq2_analysis(data_path: Union[str, Path], design_mat_path: Union[str, Path], output_path: Union[str, Path],
                         comparisons: Iterable[Tuple[str, str, str]],
                         r_installation_folder: Union[str, Path, Literal['auto']] = 'auto'):
     install_deseq2(r_installation_folder)
@@ -226,17 +233,17 @@ def run_deseq2_analysis(data_path: Union[str, Path], design_mat_path: Union[str,
 
 
 def run_edger2_analysis(data_path: Union[str, Path], design_mat_path: Union[str, Path],
-                        comparisons: Iterable[Tuple[str, str, str]],
+                        comparisons: Iterable[Tuple[str, str, str]],  output_path: Union[str, Path],
                         r_installation_folder: Union[str, Path, Literal['auto']] = 'auto'):
     install_deseq2(r_installation_folder)
-    script_path = create_edger2_script(data_path, design_mat_path, comparisons)
+    script_path = create_edger2_script(data_path, design_mat_path, comparisons, output_path)
     io.run_r_script(script_path, r_installation_folder)
     return script_path.parent
 
-def run_edger3_analysis(data_path: Union[str, Path], design_mat_path: Union[str, Path],
+def run_edger3_analysis(data_path: Union[str, Path], design_mat_path: Union[str, Path], output_path: Union[str, Path],
                         reference: str,
                         r_installation_folder: Union[str, Path, Literal['auto']] = 'auto'):
     install_deseq2(r_installation_folder)
-    script_path = create_edger3_script(data_path, design_mat_path, reference)
+    script_path = create_edger3_script(data_path, design_mat_path, output_path, reference)
     io.run_r_script(script_path, r_installation_folder)
     return script_path.parent

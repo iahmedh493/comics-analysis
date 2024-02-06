@@ -102,8 +102,8 @@ class Filter:
     def __repr__(self):
         return f"{type(self).__name__}('{self.fname.as_posix()}')"
 
-    def __str__(self):
-        return f"{self.readable_name} named '{self.fname.stem}{self.fname.suffix}'"
+    #def __str__(self):
+        #return f"{self.readable_name} named '{self.fname.stem}{self.fname.suffix}'"
 
     def __len__(self):
         """
@@ -271,7 +271,6 @@ class Filter:
             split = split[:-1]
         return split
 
-    @readable_name('Table head')
     def head(self, n: PositiveInt = 5) -> pd.DataFrame:
 
         """
@@ -306,7 +305,6 @@ class Filter:
         """
         return self.df.head(n)
 
-    @readable_name('Table tail')
     def tail(self, n: PositiveInt = 5) -> pd.DataFrame:
 
         """
@@ -493,7 +491,6 @@ class Filter:
 
 
 
-    @readable_name('Filter with a number filter')
     def number_filters(self, column: param_typing.ColumnName,
                        operator: Literal['greater than', 'equals', 'lesser than'], value: float,
                        opposite: bool = False, inplace: bool = True):
@@ -560,7 +557,6 @@ class Filter:
 
    
 #*********************************
-@readable_name('Differential expression table')
 class DESeqFilter(Filter):
     """
     A class that receives a DESeq output file and can filter it according to various characteristics.
@@ -649,7 +645,6 @@ class DESeqFilter(Filter):
                            f"could not be found. Try setting a different value for the parameter 'log2fc_col' "
                            f"when creating the DESeqFilter object.")
 
-    @readable_name('Filter by statistical significance')
     def filter_significant(self, alpha: param_typing.Fraction = 0.1, opposite: bool = False, inplace: bool = True):
 
         """
@@ -684,7 +679,6 @@ class DESeqFilter(Filter):
         suffix = f"_sig{alpha}"
         return self._inplace(new_df, opposite, inplace, suffix)
 
-    @readable_name('Filter by absolute log2 fold-change magnitude')
     def filter_abs_log2_fold_change(self, abslog2fc: float = 1, opposite: bool = False, inplace: bool = True):
 
         """
@@ -719,7 +713,6 @@ class DESeqFilter(Filter):
         new_df = self.df[np.abs(self.df[self.log2fc_col]) >= abslog2fc]
         return self._inplace(new_df, opposite, inplace, suffix)
 
-    @readable_name('Filter by log2 fold-change direction')
     def filter_fold_change_direction(self, direction: Literal['pos', 'neg'] = 'pos', opposite: bool = False,
                                      inplace: bool = True):
 
@@ -768,7 +761,6 @@ class DESeqFilter(Filter):
                 "'direction' must be either 'pos' for positive fold-change, or 'neg' for negative fold-change. ")
         return self._inplace(new_df, opposite, inplace, suffix)
 
-    @readable_name('Split by log2 fold-change direction')
     def split_fold_change_direction(self) -> tuple:
 
         """
@@ -792,7 +784,6 @@ class DESeqFilter(Filter):
         return self.filter_fold_change_direction(direction='pos', inplace=False), self.filter_fold_change_direction(
             direction='neg', inplace=False)
 
-    @readable_name('Volcano plot')
     def volcano_plot(self, alpha: param_typing.Fraction = 0.1, log2fc_threshold: Union[float, None] = 1,
                      title: Union[str, Literal['auto']] = 'auto', title_fontsize: float = 16,
                      label_fontsize: float = 16, tick_fontsize: float = 12,
@@ -909,7 +900,7 @@ class CountFilter(Filter):
         counts.triplicates will be  [['A_rep1','A_rep2','A_rep3'],['B_rep1','B_rep2',_B_rep3']]
 
     """
-    def __init__(self, fname: Union[str, Path, tuple], drop_columns: Union[str, List[str]] = None,
+    def __init__(self, fname: Union[str, Path, tuple], ppath: Union[str, Path, tuple], drop_columns: Union[str, List[str]] = None,
                  is_normalized: bool = False):
         """
         Load a count matrix. A valid count matrix should have one row per gene/genomic feature \
@@ -926,6 +917,7 @@ class CountFilter(Filter):
         :type is_normalized: bool (default=False)
         """
         super().__init__(fname, drop_columns)
+        self._ppath = ppath
         self._is_normalized = is_normalized
 
     def _init_warnings(self):
@@ -996,9 +988,9 @@ class CountFilter(Filter):
    
    
     def differential_expression_edger2(self, design_matrix: Union[str, Path],
-                                       comparisons: Iterable[Tuple[str, str, str]],
+                                       comparisons: Iterable[Tuple[str, str, str]], 
+                                       output_folder: Union[str, Path, None] = None,
                                        r_installation_folder: Union[str, Path, Literal['auto']] = 'auto',
-                                       output_folder: Union[str, Path, None] = None
                                        ) -> Tuple['DESeqFilter', ...]:
         """
         Run differential expression analysis on the count matrix using the \
@@ -1036,11 +1028,12 @@ class CountFilter(Filter):
             assert output_folder.exists(), 'Output folder does not exist!'
 
         self._validate_is_normalized(expect_normalized=False)
-        data_path = io.get_todays_cache_dir().joinpath(self.fname.name)
+        data_path1 = io.get_todays_cache_dir(output_folder)
+        data_path = data_path1.joinpath(self.fname.name)
         design_mat_path = None
         i = 0
         while design_mat_path is None or design_mat_path.exists():
-            design_mat_path = io.get_todays_cache_dir().joinpath(f'design_mat_{i}.csv')
+            design_mat_path = io.get_todays_cache_dir(output_folder).joinpath(f'design_mat_{i}.csv')
             i += 1
 
         io.save_table(self.df.round(), data_path)
@@ -1048,7 +1041,7 @@ class CountFilter(Filter):
         design_mat_df = io.load_table(design_matrix, index_col=0)
         self._diff_exp_assertions(design_mat_df)
         io.save_table(design_mat_df, design_mat_path)
-        differential_expression.run_edger2_analysis(data_path, design_mat_path, comparisons,
+        differential_expression.run_edger2_analysis(data_path, design_mat_path, comparisons, output_folder,
                                                                    r_installation_folder)
         '''
         r_output_dir = differential_expression.run_edger2_analysis(data_path, design_mat_path, comparisons,
@@ -1108,11 +1101,11 @@ class CountFilter(Filter):
             assert output_folder.exists(), 'Output folder does not exist!'
 
         self._validate_is_normalized(expect_normalized=False)
-        data_path = io.get_todays_cache_dir().joinpath(self.fname.name)
+        data_path = io.get_todays_cache_dir(output_folder).joinpath(self.fname.name)
         design_mat_path = None
         i = 0
         while design_mat_path is None or design_mat_path.exists():
-            design_mat_path = io.get_todays_cache_dir().joinpath(f'design_mat_{i}.csv')
+            design_mat_path = io.get_todays_cache_dir(output_folder).joinpath(f'design_mat_{i}.csv')
             i += 1
 
         io.save_table(self.df.round(), data_path)
@@ -1165,11 +1158,12 @@ class CountFilter(Filter):
             assert output_folder.exists(), 'Output folder does not exist!'
 
         self._validate_is_normalized(expect_normalized=False)
-        data_path = io.get_todays_cache_dir().joinpath(self.fname.name)
+        data_path1 = io.get_todays_cache_dir(output_folder)
+        data_path = data_path1.joinpath(self.fname.name)
         design_mat_path = None
         i = 0
         while design_mat_path is None or design_mat_path.exists():
-            design_mat_path = io.get_todays_cache_dir().joinpath(f'design_mat_{i}.csv')
+            design_mat_path = io.get_todays_cache_dir(output_folder).joinpath(f'design_mat_{i}.csv')
             i += 1
 
         io.save_table(self.df.round(), data_path)
@@ -1233,7 +1227,7 @@ class CountFilter(Filter):
             assert output_folder.exists(), 'Output folder does not exist!'
 
         self._validate_is_normalized(expect_normalized=False)
-        data_path = io.get_data_dir().joinpath(self.fname.name)
+        data_path = io.get_data_dir(self.ppath).joinpath(self.fname.name)
     
         io.save_table(self.df.round(), data_path)
     
